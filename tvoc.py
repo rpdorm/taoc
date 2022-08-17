@@ -6,7 +6,7 @@ import os, time
 white="\033[0;37;40m"
 bold="\033[1;37;40m"
 
-interval=Interval.INTERVAL_4_HOURS
+interval=Interval.INTERVAL_1_HOUR
 symbols=[
 	'BINANCE:BTCUSDT',
 	'BINANCE:ETHUSDT',
@@ -34,9 +34,23 @@ symbols=[
 	'BINANCE:ALGOUSDT',
 	'BINANCE:FILUSDT',
 	'BINANCE:VETUSDT',
+	'BINANCE:ICPUSDT',
+	'BINANCE:APEUSDT',
+	'BINANCE:MANAUSDT',
+	'BINANCE:SANDUSDT',
+	'BINANCE:XTZUSDT',
 	'BINANCE:EOSUSDT',
+	'BINANCE:AAVEUSDT',
+	'BINANCE:THETAUSDT',
+	'BINANCE:QNTUSDT',
+	'BINANCE:EGLDUSDT',
+	'BINANCE:CHZUSDT',
+	'BINANCE:ZECUSDT',
+	'BINANCE:MKRUSDT',
+	'BINANCE:FTMUSDT',
 	'BINANCE:HNTUSDT',
-	'BINANCE:KDAUSDT'
+	'BINANCE:KDAUSDT',
+	'BYBIT:BITUSDT'
 	]
 
 while True:
@@ -68,4 +82,4 @@ while True:
 		print(f'\033[0;33;40m>{bold}{handle[0:-4]}\033[0;33;40m@{bold}{exchange} \033[1;{price_text_color};40m${output.get_analysis().indicators["close"]} {price_delta_perc}% {bold}O{white}${output.get_analysis().indicators["open"]} {bold}H{white}${output.get_analysis().indicators["high"]} {bold}L{white}${output.get_analysis().indicators["low"]} \033[1;{rec_color};40m{output.get_analysis().summary["RECOMMENDATION"]}\033[0;37;40m')
 
 	print(f'ok...')
-	time.sleep(300)
+	time.sleep(150)
