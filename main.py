@@ -13,6 +13,7 @@ from ta.utils import dropna
 from ta.momentum import RSIIndicator
 from ta.trend import MACD, PSARIndicator
 from ta.volatility import AverageTrueRange
+from ta.volume import MFIIndicator
 from datetime import datetime
 from numerize import numerize
 import time
@@ -60,9 +61,9 @@ while True:
     print(f'{white}fetching data from {len(symbols)} pairs on {exchange_to_use}...')
     # we want to look up multiple symbols...
     for symbol in symbols:
-        print(f'processing {symbol}     ', end='\r')
         # ...in multiple timeframes.
         for timeframe in timeframes:
+            print(f'processing {symbol} {timeframe} chart     ', end='\r')
             bars = exchange.fetch_ohlcv(symbol, timeframe=timeframe, limit=limit)
             # ignore current candle still in progress
             df = pd.DataFrame(bars, columns=['timestamp','open','high','low','close','volume'])
@@ -133,8 +134,6 @@ while True:
                 macd_sell_signal=False
                 macd_buy_signal=True
 
-            #ATR (Average True Range)
-            df['atr']=AverageTrueRange(high=df['high'], low=df['low'], close=df['close'], window=7, fillna=True).average_true_range()
 
             #PSAR (Parabolic Stop and Reverse)
             df['psar']=PSARIndicator(high=df['high'], low=df['low'], close=df['close'], step=0.02, max_step=0.2, fillna=True).psar()
@@ -147,12 +146,29 @@ while True:
                 psar_trend=arrow_up
             else:
                 psar_trend=arrow_down
+            
+            # MFI (Money Flow Indicator)
+            df['mfi']=MFIIndicator(high=df['high'], low=df['low'], close=df['close'], volume=df['volume'], window=14, fillna=True).money_flow_index()
+            mfi=round(df['mfi'].iat[-1],1)
+            mfi_prev=df['mfi'].shift(1).iat[-1]
+            mfi_delta=round(mfi-mfi_prev,1)
+            if mfi_prev >= 80:
+                mfi_sell_signal=True
+                mfi_buy_signal=False
+            elif mfi_prev <= 20:
+                mfi_sell_signal=False
+                mfi_buy_signal=True
+            if mfi_delta < 0:
+                mfi_dir=arrow_down
+            else:
+                mfi_dir=arrow_up
+
          
 
             # calculate buy/sell signals
-            if rsi_sell_signal == True and macd_sell_signal == True:
+            if rsi_sell_signal == True and macd_sell_signal == True and mfi_sell_signal == True:
                 signal=short_sell
-            elif rsi_buy_signal == True and macd_buy_signal == True:
+            elif rsi_buy_signal == True and macd_buy_signal == True and mfi_buy_signal == True:
                 signal=buy_long
             else:
                 signal=False
@@ -161,7 +177,7 @@ while True:
             # print stuff
             if signal != False:
                 c=c+1
-                print(f'{yellow}<{bold}{symbol[0:-5]}{yellow}@{white}{timeframe}{yellow}>{white} {price_change}%{white} {bold}RSI{white}{rsi_dir}{white}{rsi} {bold}MACD{macd_dir}{white}{macd_hist} {bold}PSAR{psar_trend}{white}{psar_delta} {bold}VOL{vol_dir}{white}${vol_show} {signal}{white}')
+                print(f'{yellow}<{bold}{symbol[0:-5]}{yellow}@{white}{timeframe}{yellow}>{white} {price_change}%{white} {bold}RSI{white}{rsi_dir}{white}{rsi} {bold}MACD{macd_dir}{white}{macd_hist} {bold}PSAR{psar_trend}{white}{psar_delta} {bold}MACD{macd_dir}{white}{macd_hist} {bold}MFI{mfi_dir}{white}{mfi} {bold}VOL{vol_dir}{white}${vol_show} {signal}{white}')
             #print(df)
     if c > 0:
         print(f'{white}done. found {c} potential trades.')
