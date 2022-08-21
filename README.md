@@ -1,2 +1,2 @@
-# tvoc
-TradingView on Console (Linux+Python)
+# taoc
+Technical Analysis on Console (Linux+Python)

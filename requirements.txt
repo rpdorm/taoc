@@ -1,0 +1,6 @@
+ta
+ccxt
+schedule
+pandas
+numpy
+numerize
