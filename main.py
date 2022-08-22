@@ -19,7 +19,7 @@ from numerize import numerize
 import time
 import os
 
-
+log_file = open('log.txt', 'a')
 
 pd.set_option('display.max_rows', None)
 # text colors and format
@@ -68,6 +68,8 @@ while True:
             # ignore current candle still in progress
             df = pd.DataFrame(bars, columns=['timestamp','open','high','low','close','volume'])
             df['timestamp'] = pd.to_datetime(df['timestamp'], unit='ms')
+            current_time=df['timestamp'].iat[-1]
+            price=df['close'].iat[-1]
 
             # get technical analysis indicators
             # calculate basic trend
@@ -152,12 +154,15 @@ while True:
             mfi=round(df['mfi'].iat[-1],1)
             mfi_prev=df['mfi'].shift(1).iat[-1]
             mfi_delta=round(mfi-mfi_prev,1)
-            if mfi_prev >= 80:
+            if mfi_prev >= 70:
                 mfi_sell_signal=True
                 mfi_buy_signal=False
-            elif mfi_prev <= 20:
+            elif mfi_prev <= 30:
                 mfi_sell_signal=False
                 mfi_buy_signal=True
+            else:
+                mfi_sell_signal=False
+                mfi_buy_signal=False
             if mfi_delta < 0:
                 mfi_dir=arrow_down
             else:
@@ -168,8 +173,10 @@ while True:
             # calculate buy/sell signals
             if rsi_sell_signal == True and macd_sell_signal == True and mfi_sell_signal == True:
                 signal=short_sell
+                signal_log='SHORT'
             elif rsi_buy_signal == True and macd_buy_signal == True and mfi_buy_signal == True:
                 signal=buy_long
+                signal_log='LONG'
             else:
                 signal=False
                 signal_color=False
@@ -177,7 +184,8 @@ while True:
             # print stuff
             if signal != False:
                 c=c+1
-                print(f'{yellow}<{bold}{symbol[0:-5]}{yellow}@{white}{timeframe}{yellow}>{white} {price_change}%{white} {bold}RSI{white}{rsi_dir}{white}{rsi} {bold}MACD{macd_dir}{white}{macd_hist} {bold}PSAR{psar_trend}{white}{psar_delta} {bold}MACD{macd_dir}{white}{macd_hist} {bold}MFI{mfi_dir}{white}{mfi} {bold}VOL{vol_dir}{white}${vol_show} {signal}{white}')
+                print(f'{yellow}<{bold}{symbol[0:-5]}{yellow}@{white}{timeframe}{yellow}>{white} {price_change}%{white} {bold}RSI{white}{rsi_dir}{white}{rsi} {bold}MACD{macd_dir}{white}{macd_hist} {bold}PSAR{psar_trend}{white}{psar_delta} {bold}MFI{mfi_dir}{white}{mfi} {bold}VOL{vol_dir}{white}${vol_show} {signal}{white}')
+                log_file.write(f'{current_time} {symbol} {timeframe} ${price} rsi:{rsi} macd:{macd_hist} mfi:{mfi} vol:{vol_show} signal:{signal_log}\n')
             #print(df)
     if c > 0:
         print(f'{white}done. found {c} potential trades.')
@@ -185,3 +193,4 @@ while True:
         os.system('clear')
         print(f'やれやれだぜ...')
     time.sleep(600)
+log_file.close()
