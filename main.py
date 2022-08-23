@@ -14,12 +14,12 @@ from ta.momentum import RSIIndicator
 from ta.trend import MACD, PSARIndicator
 from ta.volatility import AverageTrueRange
 from ta.volume import MFIIndicator
-from datetime import datetime
+from datetime import date, datetime
 from numerize import numerize
 import time
 import os
 
-log_file = open('log.txt', 'a')
+
 
 pd.set_option('display.max_rows', None)
 # text colors and format
@@ -56,6 +56,7 @@ elif exchange_to_use == 'Bybit':
 
 
 while True:
+    log_file = open('log.txt', 'a')
     c=0
     os.system('clear')
     print(f'{white}fetching data from {len(symbols)} pairs on {exchange_to_use}...')
@@ -68,7 +69,8 @@ while True:
             # ignore current candle still in progress
             df = pd.DataFrame(bars, columns=['timestamp','open','high','low','close','volume'])
             df['timestamp'] = pd.to_datetime(df['timestamp'], unit='ms')
-            current_time=df['timestamp'].iat[-1]
+            today=date.today()
+            now=datetime.now()
             price=df['close'].iat[-1]
 
             # get technical analysis indicators
@@ -185,12 +187,12 @@ while True:
             if signal != False:
                 c=c+1
                 print(f'{yellow}<{bold}{symbol[0:-5]}{yellow}@{white}{timeframe}{yellow}>{white} {price_change}%{white} {bold}RSI{white}{rsi_dir}{white}{rsi} {bold}MACD{macd_dir}{white}{macd_hist} {bold}PSAR{psar_trend}{white}{psar_delta} {bold}MFI{mfi_dir}{white}{mfi} {bold}VOL{vol_dir}{white}${vol_show} {signal}{white}')
-                log_file.write(f'{current_time} {symbol} {timeframe} ${price} rsi:{rsi} macd:{macd_hist} mfi:{mfi} vol:{vol_show} signal:{signal_log}\n')
+                log_file.write(f'{now} {symbol} {timeframe} ${price} rsi:{rsi} macd:{macd_hist} mfi:{mfi} vol:{vol_show} signal:{signal_log}\n')
             #print(df)
     if c > 0:
         print(f'{white}done. found {c} potential trades.')
     else:
         os.system('clear')
         print(f'やれやれだぜ...')
-    time.sleep(600)
-log_file.close()
+    log_file.close()
+    time.sleep(1200)
